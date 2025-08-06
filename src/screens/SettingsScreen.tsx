@@ -7,6 +7,7 @@ import {
   Switch,
   Alert,
   Dimensions,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,304 +17,361 @@ import { RootStackParamList } from '../types/navigation';
 
 type SettingsNavigationProp = StackNavigationProp<RootStackParamList, 'Settings'>;
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const SettingsScreen: React.FC = () => {
   const navigation = useNavigation<SettingsNavigationProp>();
-  
-  // Settings state
-  const [settings, setSettings] = useState({
-    aiTextPolishing: true,
-    speechToText: true,
-    adaptiveLearning: true,
-    notifications: true,
-    darkMode: false,
-    autoSave: true,
-  });
-
-  const [selectedClient, setSelectedClient] = useState('Shell International');
-  const [riskMatrixSize, setRiskMatrixSize] = useState('5x5');
-  const [selectedIndustry, setSelectedIndustry] = useState('Oil & Gas');
-
-  const clients = ['Shell International', 'ExxonMobil', 'Dow Chemical', 'BP', 'Chevron'];
-  const matrixSizes = ['5x5', '5x4', '4x4', '6x6'];
-  const industries = ['Oil & Gas', 'Chemical', 'Pharmaceutical', 'Mining', 'Power Generation'];
-
-  const toggleSetting = (key: keyof typeof settings) => {
-    setSettings(prev => ({ ...prev, [key]: !prev[key] }));
-  };
+  const [notifications, setNotifications] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
+  const [aiFeatures, setAiFeatures] = useState(true);
+  const [autoSave, setAutoSave] = useState(true);
+  const [selectedLanguage, setSelectedLanguage] = useState('English (US)');
+  const [selectedTheme, setSelectedTheme] = useState('Purple');
 
   const SettingItem = ({ 
+    icon, 
     title, 
     subtitle, 
-    icon, 
-    value, 
-    onToggle, 
-    type = 'switch' 
+    onPress, 
+    showArrow = true,
+    rightComponent 
   }: {
-    title: string;
-    subtitle: string;
     icon: keyof typeof Ionicons.glyphMap;
-    value: boolean;
-    onToggle: () => void;
-    type?: 'switch' | 'chevron';
+    title: string;
+    subtitle?: string;
+    onPress?: () => void;
+    showArrow?: boolean;
+    rightComponent?: React.ReactNode;
   }) => (
-    <View className="flex-row items-center justify-between py-4 border-b border-gray-100">
-      <View className="flex-row items-center flex-1">
-        <View className="w-10 h-10 bg-blue-100 rounded-lg items-center justify-center mr-3">
-          <Ionicons name={icon} size={20} color="#3b82f6" />
+    <TouchableOpacity 
+      className="flex-row items-center p-4 bg-white rounded-xl mb-3 border border-gray-100"
+      onPress={onPress}
+      disabled={!onPress}
+    >
+      <View className="w-10 h-10 bg-purple-100 rounded-lg items-center justify-center mr-4">
+        <Ionicons name={icon} size={20} color="#7c3aed" />
+      </View>
+      <View className="flex-1">
+        <Text className="text-base font-semibold text-gray-800">{title}</Text>
+        {subtitle && (
+          <Text className="text-sm text-gray-500 mt-1">{subtitle}</Text>
+        )}
+      </View>
+      {rightComponent && rightComponent}
+      {showArrow && onPress && (
+        <Ionicons name="chevron-forward" size={20} color="#6b7280" />
+      )}
+    </TouchableOpacity>
+  );
+
+  const SwitchItem = ({ 
+    icon, 
+    title, 
+    subtitle, 
+    value, 
+    onValueChange 
+  }: {
+    icon: keyof typeof Ionicons.glyphMap;
+    title: string;
+    subtitle?: string;
+    value: boolean;
+    onValueChange: (value: boolean) => void;
+  }) => (
+    <View className="flex-row items-center p-4 bg-white rounded-xl mb-3 border border-gray-100">
+      <View className="w-10 h-10 bg-purple-100 rounded-lg items-center justify-center mr-4">
+        <Ionicons name={icon} size={20} color="#7c3aed" />
+      </View>
+      <View className="flex-1">
+        <Text className="text-base font-semibold text-gray-800">{title}</Text>
+        {subtitle && (
+          <Text className="text-sm text-gray-500 mt-1">{subtitle}</Text>
+        )}
+      </View>
+      <Switch
+        value={value}
+        onValueChange={onValueChange}
+        trackColor={{ false: '#d1d5db', true: '#7c3aed' }}
+        thumbColor={value ? '#ffffff' : '#ffffff'}
+      />
+    </View>
+  );
+
+  const Header = () => (
+    <View className="bg-white border-b border-gray-200 px-6 py-4">
+      <View className="flex-row items-center">
+        <TouchableOpacity 
+          className="mr-4"
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#6b7280" />
+        </TouchableOpacity>
+        <View>
+          <Text className="text-2xl font-bold text-gray-800">Settings</Text>
+          <Text className="text-sm text-gray-500">Customize your experience</Text>
+        </View>
+      </View>
+    </View>
+  );
+
+  const ProfileSection = () => (
+    <View className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+      <Text className="text-xl font-semibold text-gray-800 mb-6">Profile</Text>
+      
+      <View className="flex-row items-center mb-6">
+        <View className="w-16 h-16 bg-purple-500 rounded-full items-center justify-center mr-4">
+          <Text className="text-white text-xl font-bold">M</Text>
         </View>
         <View className="flex-1">
-          <Text className="text-gray-800 font-medium">{title}</Text>
-          <Text className="text-gray-500 text-sm">{subtitle}</Text>
+          <Text className="text-lg font-semibold text-gray-800">Manager</Text>
+          <Text className="text-sm text-gray-500">Admin • manager@hensis.com</Text>
+          <Text className="text-xs text-gray-400 mt-1">Last login: 2 hours ago</Text>
         </View>
-      </View>
-      {type === 'switch' ? (
-        <Switch
-          value={value}
-          onValueChange={onToggle}
-          trackColor={{ false: '#e5e7eb', true: '#3b82f6' }}
-          thumbColor={value ? '#ffffff' : '#ffffff'}
-        />
-      ) : (
-        <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-      )}
-    </View>
-  );
-
-  const RiskMatrixConfig = () => (
-    <View className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-4">
-      <Text className="text-lg font-semibold text-gray-800 mb-4">Risk Matrix Configuration</Text>
-      
-      {/* Matrix Size */}
-      <View className="mb-4">
-        <Text className="text-sm font-medium text-gray-700 mb-2">Matrix Size</Text>
-        <View className="flex-row flex-wrap">
-          {matrixSizes.map((size) => (
-            <TouchableOpacity
-              key={size}
-              className={`px-3 py-2 rounded-full mr-2 mb-2 ${
-                riskMatrixSize === size ? 'bg-blue-500' : 'bg-gray-100'
-              }`}
-              onPress={() => setRiskMatrixSize(size)}
-            >
-              <Text className={`text-sm ${
-                riskMatrixSize === size ? 'text-white' : 'text-gray-700'
-              }`}>
-                {size}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <TouchableOpacity className="bg-purple-50 px-3 py-2 rounded-lg">
+          <Text className="text-sm font-medium text-purple-600">Edit</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Impact Levels */}
-      <View className="mb-4">
-        <Text className="text-sm font-medium text-gray-700 mb-2">Impact Levels</Text>
-        <View className="bg-gray-50 rounded-lg p-3">
-          <Text className="text-sm text-gray-600">
-            A - Catastrophic • B - Major • C - Moderate • D - Minor • E - Negligible
-          </Text>
-        </View>
-      </View>
-
-      {/* Probability Levels */}
-      <View className="mb-4">
-        <Text className="text-sm font-medium text-gray-700 mb-2">Probability Levels</Text>
-        <View className="bg-gray-50 rounded-lg p-3">
-          <Text className="text-sm text-gray-600">
-            1 - Very Unlikely • 2 - Unlikely • 3 - Possible • 4 - Likely • 5 - Very Likely
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-
-  const ClientConfig = () => (
-    <View className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-4">
-      <Text className="text-lg font-semibold text-gray-800 mb-4">Client Configuration</Text>
-      
-      {/* Client Selection */}
-      <View className="mb-4">
-        <Text className="text-sm font-medium text-gray-700 mb-2">Active Client</Text>
-        <View className="flex-row flex-wrap">
-          {clients.map((client) => (
-            <TouchableOpacity
-              key={client}
-              className={`px-3 py-2 rounded-full mr-2 mb-2 ${
-                selectedClient === client ? 'bg-blue-500' : 'bg-gray-100'
-              }`}
-              onPress={() => setSelectedClient(client)}
-            >
-              <Text className={`text-sm ${
-                selectedClient === client ? 'text-white' : 'text-gray-700'
-              }`}>
-                {client}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      {/* Industry Selection */}
-      <View className="mb-4">
-        <Text className="text-sm font-medium text-gray-700 mb-2">Industry</Text>
-        <View className="flex-row flex-wrap">
-          {industries.map((industry) => (
-            <TouchableOpacity
-              key={industry}
-              className={`px-3 py-2 rounded-full mr-2 mb-2 ${
-                selectedIndustry === industry ? 'bg-blue-500' : 'bg-gray-100'
-              }`}
-              onPress={() => setSelectedIndustry(industry)}
-            >
-              <Text className={`text-sm ${
-                selectedIndustry === industry ? 'text-white' : 'text-gray-700'
-              }`}>
-                {industry}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      {/* Terminology */}
-      <View className="mb-4">
-        <Text className="text-sm font-medium text-gray-700 mb-2">Risk Assessment Terminology</Text>
-        <View className="bg-gray-50 rounded-lg p-3">
-          <Text className="text-sm text-gray-600">
-            Inherent Risk • Residual Risk • Level 1 Assessment • Level 2 Assessment
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-
-  const AIConfig = () => (
-    <View className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-4">
-      <Text className="text-lg font-semibold text-gray-800 mb-4">AI Configuration</Text>
-      
-      <View className="space-y-0">
+      <View className="space-y-3">
         <SettingItem
-          title="Text Polishing"
-          subtitle="Automatically improve grammar and clarity"
-          icon="sparkles"
-          value={settings.aiTextPolishing}
-          onToggle={() => toggleSetting('aiTextPolishing')}
+          icon="person-outline"
+          title="Personal Information"
+          subtitle="Update your profile details"
+          onPress={() => Alert.alert('Info', 'Personal Information settings')}
         />
         <SettingItem
-          title="Speech-to-Text"
-          subtitle="Enable voice input for data entry"
-          icon="mic"
-          value={settings.speechToText}
-          onToggle={() => toggleSetting('speechToText')}
+          icon="shield-checkmark-outline"
+          title="Security"
+          subtitle="Password, 2FA, and privacy"
+          onPress={() => Alert.alert('Info', 'Security settings')}
         />
         <SettingItem
-          title="Adaptive Learning"
-          subtitle="AI learns from your corrections (70-90% accuracy)"
-          icon="bulb"
-          value={settings.adaptiveLearning}
-          onToggle={() => toggleSetting('adaptiveLearning')}
+          icon="card-outline"
+          title="Subscription"
+          subtitle="Hensis Pro • Active until Dec 2024"
+          onPress={() => Alert.alert('Info', 'Subscription management')}
         />
       </View>
     </View>
   );
 
-  const SystemConfig = () => (
-    <View className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-4">
-      <Text className="text-lg font-semibold text-gray-800 mb-4">System Settings</Text>
+  const PreferencesSection = () => (
+    <View className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+      <Text className="text-xl font-semibold text-gray-800 mb-6">Preferences</Text>
       
-      <View className="space-y-0">
-        <SettingItem
-          title="Notifications"
-          subtitle="Receive alerts for high-risk items"
-          icon="notifications"
-          value={settings.notifications}
-          onToggle={() => toggleSetting('notifications')}
+      <View className="space-y-3">
+        <SwitchItem
+          icon="notifications-outline"
+          title="Push Notifications"
+          subtitle="Get notified about project updates"
+          value={notifications}
+          onValueChange={setNotifications}
         />
-        <SettingItem
+        <SwitchItem
+          icon="moon-outline"
           title="Dark Mode"
           subtitle="Switch to dark theme"
-          icon="moon"
-          value={settings.darkMode}
-          onToggle={() => toggleSetting('darkMode')}
+          value={darkMode}
+          onValueChange={setDarkMode}
         />
-        <SettingItem
+        <SwitchItem
+          icon="sparkles-outline"
+          title="AI Features"
+          subtitle="Enable AI-powered text polishing"
+          value={aiFeatures}
+          onValueChange={setAiFeatures}
+        />
+        <SwitchItem
+          icon="save-outline"
           title="Auto Save"
           subtitle="Automatically save your work"
-          icon="save"
-          value={settings.autoSave}
-          onToggle={() => toggleSetting('autoSave')}
+          value={autoSave}
+          onValueChange={setAutoSave}
+        />
+      </View>
+    </View>
+  );
+
+  const AppearanceSection = () => (
+    <View className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+      <Text className="text-xl font-semibold text-gray-800 mb-6">Appearance</Text>
+      
+      <View className="space-y-3">
+        <SettingItem
+          icon="language-outline"
+          title="Language"
+          subtitle={selectedLanguage}
+          onPress={() => {
+            Alert.alert(
+              'Select Language',
+              'Choose your preferred language',
+              [
+                { text: 'English (US)', onPress: () => setSelectedLanguage('English (US)') },
+                { text: 'Spanish', onPress: () => setSelectedLanguage('Spanish') },
+                { text: 'French', onPress: () => setSelectedLanguage('French') },
+                { text: 'German', onPress: () => setSelectedLanguage('German') },
+                { text: 'Cancel', style: 'cancel' },
+              ]
+            );
+          }}
         />
         <SettingItem
-          title="Export Settings"
-          subtitle="Configure report export options"
-          icon="download"
-          value={false}
-          onToggle={() => {}}
-          type="chevron"
+          icon="color-palette-outline"
+          title="Theme Color"
+          subtitle={selectedTheme}
+          onPress={() => {
+            Alert.alert(
+              'Select Theme',
+              'Choose your preferred theme color',
+              [
+                { text: 'Purple', onPress: () => setSelectedTheme('Purple') },
+                { text: 'Blue', onPress: () => setSelectedTheme('Blue') },
+                { text: 'Green', onPress: () => setSelectedTheme('Green') },
+                { text: 'Orange', onPress: () => setSelectedTheme('Orange') },
+                { text: 'Cancel', style: 'cancel' },
+              ]
+            );
+          }}
         />
+      </View>
+    </View>
+  );
+
+  const DataSection = () => (
+    <View className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+      <Text className="text-xl font-semibold text-gray-800 mb-6">Data & Storage</Text>
+      
+      <View className="space-y-3">
         <SettingItem
+          icon="cloud-upload-outline"
           title="Backup & Sync"
-          subtitle="Manage data backup and synchronization"
-          icon="cloud"
-          value={false}
-          onToggle={() => {}}
-          type="chevron"
+          subtitle="Manage your data backup"
+          onPress={() => Alert.alert('Info', 'Backup & Sync settings')}
+        />
+        <SettingItem
+          icon="download-outline"
+          title="Export Data"
+          subtitle="Download your project data"
+          onPress={() => Alert.alert('Info', 'Export data options')}
+        />
+        <SettingItem
+          icon="trash-outline"
+          title="Clear Cache"
+          subtitle="Free up storage space"
+          onPress={() => {
+            Alert.alert(
+              'Clear Cache',
+              'This will clear all cached data. Are you sure?',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Clear', style: 'destructive', onPress: () => Alert.alert('Success', 'Cache cleared successfully!') },
+              ]
+            );
+          }}
+        />
+      </View>
+    </View>
+  );
+
+  const SupportSection = () => (
+    <View className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+      <Text className="text-xl font-semibold text-gray-800 mb-6">Support & Help</Text>
+      
+      <View className="space-y-3">
+        <SettingItem
+          icon="help-circle-outline"
+          title="Help Center"
+          subtitle="Find answers and tutorials"
+          onPress={() => Alert.alert('Info', 'Help Center')}
+        />
+        <SettingItem
+          icon="chatbubble-outline"
+          title="Contact Support"
+          subtitle="Get help from our team"
+          onPress={() => Alert.alert('Info', 'Contact Support')}
+        />
+        <SettingItem
+          icon="document-text-outline"
+          title="Documentation"
+          subtitle="User guides and API docs"
+          onPress={() => Alert.alert('Info', 'Documentation')}
+        />
+        <SettingItem
+          icon="star-outline"
+          title="Rate App"
+          subtitle="Share your feedback"
+          onPress={() => Alert.alert('Info', 'Rate App')}
         />
       </View>
     </View>
   );
 
   const AboutSection = () => (
-    <View className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-4">
-      <Text className="text-lg font-semibold text-gray-800 mb-4">About Hensis</Text>
+    <View className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+      <Text className="text-xl font-semibold text-gray-800 mb-6">About</Text>
       
       <View className="space-y-3">
-        <View className="flex-row justify-between">
-          <Text className="text-gray-600">Version</Text>
-          <Text className="text-gray-800 font-medium">1.0.0</Text>
-        </View>
-        <View className="flex-row justify-between">
-          <Text className="text-gray-600">Build</Text>
-          <Text className="text-gray-800 font-medium">2024.1.1</Text>
-        </View>
-        <View className="flex-row justify-between">
-          <Text className="text-gray-600">Last Updated</Text>
-          <Text className="text-gray-800 font-medium">Today</Text>
-        </View>
+        <SettingItem
+          icon="information-circle-outline"
+          title="Version"
+          subtitle="Hensis v2.1.0"
+          showArrow={false}
+        />
+        <SettingItem
+          icon="document-outline"
+          title="Terms of Service"
+          subtitle="Read our terms and conditions"
+          onPress={() => Alert.alert('Info', 'Terms of Service')}
+        />
+        <SettingItem
+          icon="shield-outline"
+          title="Privacy Policy"
+          subtitle="How we protect your data"
+          onPress={() => Alert.alert('Info', 'Privacy Policy')}
+        />
+        <SettingItem
+          icon="log-out-outline"
+          title="Sign Out"
+          subtitle="Log out of your account"
+          onPress={() => {
+            Alert.alert(
+              'Sign Out',
+              'Are you sure you want to sign out?',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Sign Out', style: 'destructive', onPress: () => navigation.navigate('Dashboard') },
+              ]
+            );
+          }}
+        />
       </View>
-
-      <TouchableOpacity 
-        className="mt-4 py-3 bg-red-50 rounded-lg items-center"
-        onPress={() => Alert.alert('Logout', 'Are you sure you want to logout?')}
-      >
-        <Text className="text-red-600 font-semibold">Logout</Text>
-      </TouchableOpacity>
     </View>
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View className="px-4 pt-4 pb-4">
-          <Text className="text-2xl font-bold text-gray-800 mb-2">Settings</Text>
-          <Text className="text-gray-600">Configure your Hensis experience</Text>
-        </View>
+    <SafeAreaView className="flex-1 bg-gray-50" style={{ flex: 1 }}>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <View className="flex-1" style={{ flex: 1 }}>
+        <Header />
+        <ScrollView 
+          className="flex-1" 
+          showsVerticalScrollIndicator={true}
+          contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
+          style={{ flex: 1 }}
+        >
+          {/* Debug Info */}
+          <View className="bg-green-100 p-4 mb-4 rounded-lg">
+            <Text className="text-green-800 font-bold">SETTINGS SCREEN</Text>
+            <Text className="text-green-600">Scrollable and responsive design</Text>
+          </View>
 
-        {/* Settings Sections */}
-        <View className="px-4">
-          <RiskMatrixConfig />
-          <ClientConfig />
-          <AIConfig />
-          <SystemConfig />
+          <ProfileSection />
+          <PreferencesSection />
+          <AppearanceSection />
+          <DataSection />
+          <SupportSection />
           <AboutSection />
-        </View>
-
-        {/* Bottom spacing */}
-        <View className="h-6" />
-      </ScrollView>
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };
